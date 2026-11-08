@@ -22,3 +22,19 @@ or Windows itself starts misbehaving.
 PostgreSQL image.
 
 **Lesson:** audit disk, RAM and tool versions *before* writing code, not after the first failure.
+
+---
+
+## 2026-11-08 — Open question: how does MERGE recognise the same earthquake?
+
+**Context:** the primary key is an auto-increment surrogate ID (see DECISIONS.md). A surrogate ID
+is assigned by the database, so the same earthquake arriving in two consecutive hourly pulls would
+receive two different IDs.
+
+**Problem:** the design goals require the pipeline to be idempotent (row count unchanged after
+three re-runs). `MERGE` needs a condition to decide "this incoming record already exists". The
+surrogate ID cannot provide that condition.
+
+**To resolve before writing `load.py`:** decide what identifies an event for the `MERGE ... ON`
+clause (for example a unique constraint on identifying fields), and test that it survives a
+revision of the source data. Record the outcome in DECISIONS.md.

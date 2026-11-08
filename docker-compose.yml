@@ -1,0 +1,28 @@
+# Local PostgreSQL: stand-in for BigQuery during development.
+# All settings come from .env (see .env.example); nothing secret lives in this file.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: bmkg-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      # host:container. POSTGRES_PORT is the port on your machine (5435 avoids
+      # clashing with other Postgres instances); 5432 is Postgres's port inside the container.
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      # Named volume: data survives `docker compose down` and is removed only by `down -v`.
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # $$ so the variables are expanded inside the container, not by Compose.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

@@ -1,0 +1,1 @@
+﻿"""BMKG earthquake pipeline package."""

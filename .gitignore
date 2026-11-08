@@ -1,0 +1,38 @@
+# --- Secrets: never commit real credentials ---
+.env
+*.pem
+*.key
+
+# --- Virtual environment: rebuildable from requirements.txt ---
+.venv/
+venv/
+
+# --- Python build artifacts ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# --- Test & tooling caches ---
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# --- Local raw zone: replayable from the source API, and grows over time ---
+# The folder itself is tracked (via .gitkeep) so the structure is documented.
+data/raw/*
+!data/raw/.gitkeep
+
+# --- Logs ---
+*.log
+logs/
+
+# --- Editors & OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

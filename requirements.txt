@@ -1,0 +1,7 @@
+# Direct dependencies, pinned to exact versions for reproducible installs.
+# Transitive dependencies are resolved by pip; see `pip freeze` for the full tree.
+# Python 3.12.x
+
+requests==2.34.2          # HTTP client for the BMKG JSON feeds (step 1: extract)
+psycopg[binary]==3.3.8    # PostgreSQL driver; [binary] ships prebuilt wheels (step 5: load)
+python-dotenv==1.2.4      # Load configuration from .env into environment variables

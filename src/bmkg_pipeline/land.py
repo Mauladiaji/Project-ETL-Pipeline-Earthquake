@@ -4,13 +4,24 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-def land_raw(feed_name: str, payload: dict, raw_dir: str, ingested_at: datetime | None = None) -> Path:
+def land_raw(
+    feed_name: str,
+    payload: dict,
+    raw_dir: str,
+    ingested_at: datetime | None = None,
+) -> Path:
     """Write one feed response to <raw_dir>/<feed>/<YYYY-MM-DD>/<HHMMSS>Z.json and return the path.
 
-    Raises FileExistsError instead of overwriting an existing file.
+    Raises FileExistsError instead of overwriting an existing file, and ValueError
+    when feed_name is not a plain name (it must never point outside raw_dir).
     """
-    # TODO 1: default to "now" in UTC; normalise any other timezone to UTC so that
-    # the date folder never depends on where the code runs.
+    # The feed name becomes a folder name: refuse anything that could escape raw_dir
+    # (e.g. "../x" or "a/b").
+    if feed_name in {"", ".", ".."} or Path(feed_name).name != feed_name:
+        raise ValueError(f"Invalid feed name for a folder: {feed_name!r}")
+
+    # Default to "now" in UTC and normalise any other timezone to UTC, so the date
+    # folder never depends on where the code runs.
     if ingested_at is None:
         ingested_at = datetime.now(timezone.utc)
     elif ingested_at.tzinfo is None:
@@ -18,18 +29,12 @@ def land_raw(feed_name: str, payload: dict, raw_dir: str, ingested_at: datetime 
     else:
         ingested_at = ingested_at.astimezone(timezone.utc)
 
-    # TODO 2: <raw_dir>/<feed>/<YYYY-MM-DD>/<HHMMSS>Z.json
-    path = (
-        Path(raw_dir)
-        / feed_name
-        / ingested_at.strftime("%Y-%m-%d")
-        / f"{ingested_at.strftime('%H%M%S')}Z.json"
-    )
+    # Layout: <raw_dir>/<feed>/<YYYY-MM-DD>/<HHMMSS>Z.json  ("Z" marks UTC)
+    path = Path(raw_dir) / feed_name / f"{ingested_at:%Y-%m-%d}" / f"{ingested_at:%H%M%S}Z.json"
 
-    # TODO 3: create the folder tree if it does not exist yet
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    # TODO 4: mode "x" refuses to overwrite: raw data is never replaced.
+    # Mode "x" refuses to overwrite an existing file: raw data is never replaced.
     with path.open("x", encoding="utf-8") as output:
         json.dump(payload, output, ensure_ascii=False)
 
